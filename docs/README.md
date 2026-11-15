@@ -23,8 +23,8 @@ docs/
 
 | Document | Purpose | Status |
 | :--- | :--- | :--- |
-| [**SRS.md**](./specs/SRS.md) | Software Requirements Specification (IEEE 29148 standard compliant). Defines all functional and non-functional requirements, RBAC matrix, and API contracts. | **Official Baseline v1.0** |
-| [**DataModel.md**](./specs/DataModel.md) | PostgreSQL schema definitions, table relationships, foreign key constraints, and core business rules. | **Active v1.2** |
+| [**SRS.md**](./specs/SRS.md) | Software Requirements Specification (IEEE 29148 standard compliant). Defines all functional and non-functional requirements, RBAC matrix, and API contracts. | **Official Baseline v1.3** |
+| [**DataModel.md**](./specs/DataModel.md) | PostgreSQL schema definitions, table relationships, foreign key constraints, and core business rules. | **Active v1.3** |
 | [**RequirementsRegister.md**](./specs/RequirementsRegister.md) | Functional requirements matrix mapping business goals to entities, endpoints, and validation criteria. | **Active** |
 
 ---
