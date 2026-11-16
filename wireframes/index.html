@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPMS — Low-Fidelity Wireframe Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       PROTOTYPE DEMO BAR (Top Floating Controller)
+       ========================================================================== -->
+  <header id="demo-control-bar">
+    <div class="demo-bar-left">
+      <span class="demo-title-badge">IPMS Wireframe Prototype</span>
+      <span style="color: #64748b;">|</span>
+      <span style="color: #cbd5e1; font-weight: 500;">Active Role:</span>
+      <div class="role-switcher-group" title="Role-Based Access Control Switcher">
+        <button class="role-btn" data-role="clerk" onclick="IPMS.switchRole('clerk')">Inventory Clerk (Sam Taylor)</button>
+        <button class="role-btn" data-role="manager" onclick="IPMS.switchRole('manager')">Manager (Jordan Lee)</button>
+        <button class="role-btn" data-role="finance" onclick="IPMS.switchRole('finance')">Finance Officer (Pat Chen)</button>
+        <button class="role-btn" data-role="admin" onclick="IPMS.switchRole('admin')">Admin (Alex Morgan)</button>
+      </div>
+    </div>
+
+    <div class="demo-bar-center">
+      <label for="demo-quick-jump" style="color: #94a3b8; font-size: 11px;">Screen Jump:</label>
+      <select id="demo-quick-jump" class="demo-select" onchange="IPMS.navigateTo(this.value)">
+        <optgroup label="Authentication (Public Layout)">
+          <option value="auth-login">SCR-AUTH-01 — User Login</option>
+          <option value="auth-register">SCR-AUTH-02 — User Registration</option>
+          <option value="auth-forgot-password">SCR-AUTH-03 — Forgot Password Request</option>
+          <option value="auth-reset-password">SCR-AUTH-04 — Reset Password Confirmation</option>
+          <option value="auth-change-password">SCR-AUTH-05 — Mandatory Temporary Password Change</option>
+        </optgroup>
+        <optgroup label="Main Application">
+          <option value="dashboard" selected>SCR-DASH-01 — Operational Dashboard</option>
+          <option value="items">SCR-ITEM-01 — Item Catalog & Stock</option>
+        </optgroup>
+        <optgroup label="Procurement Requisitions">
+          <option value="requisitions">SCR-REQ-01 — Shared Requisition List</option>
+          <option value="requisition-new">SCR-REQ-02 — Create Requisition (Clerk)</option>
+          <option value="requisition-detail">SCR-REQ-03 — Requisition Detail & Review</option>
+          <option value="requisition-receipt">SCR-REQ-04 — Goods Receipt Verification (Clerk)</option>
+        </optgroup>
+        <optgroup label="Administration (Admin Only)">
+          <option value="users">SCR-USER-01 — User Management</option>
+          <option value="audit-logs">SCR-AUDIT-01 — System Audit Trail</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="demo-bar-right">
+      <button id="demo-toggle-annotations-btn" class="demo-toggle-btn active" onclick="IPMS.toggleAnnotations()" title="Toggle Design & Specification Annotations">
+        Wireframe Notes: ON
+      </button>
+      <button class="demo-toggle-btn" onclick="IPMS.resetDemoData()" title="Reset mock data to initial baseline">
+        Reset Data
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       LAYOUT 1: PUBLIC AUTHENTICATION LAYOUT (SCR-AUTH-01 to 05)
+       ========================================================================== -->
+  <main id="auth-layout" style="display: none;">
+
+    <!-- SCR-AUTH-01: User Login -->
+    <div id="screen-auth-login" class="screen-container auth-card">
+      <div class="wireframe-annotation">
+        <span class="annotation-badge">SCR-AUTH-01</span>
+        <strong>Public Route:</strong> Enforces brute-force rate-limiting (5 attempts/min; 6th returns HTTP 429). Supports email login and routes users with <code>mustChangePassword === true</code> directly to SCR-AUTH-05.
+      </div>
+
+      <div class="auth-header">
+        <div class="auth-brand">
+          <div class="auth-brand-logo">IP</div>
+          <span>IPMS Enterprise</span>
+        </div>
+        <h1 class="auth-title">Sign in to your account</h1>
+        <p class="auth-subtitle">Inventory & Procurement Management System</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); IPMS.navigateTo('dashboard');">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address <span class="required">*</span></label>
+          <input type="email" id="login-email" class="form-input" placeholder="name@company.internal" value="sam.taylor@company.internal" required>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+            <label class="form-label" for="login-password" style="margin-bottom:0;">Password <span class="required">*</span></label>
+            <a onclick="IPMS.navigateTo('auth-forgot-password')" style="font-size:12px;">Forgot password?</a>
+          </div>
+          <input type="password" id="login-password" class="form-input" value="••••••••••••" required>
+          <div class="form-helper-text">Minimum 8 characters with complexity enforcement.</div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In to Dashboard</button>
+        </div>
+      </form>
+
+      <div class="auth-footer">
+        Don't have a staff account? <a onclick="IPMS.navigateTo('auth-register')">Register here</a>
+      </div>
+    </div>
+
+    <!-- SCR-AUTH-02: User Registration -->
+    <div id="screen-auth-register" class="screen-container auth-card auth-card-wide">
+      <div class="wireframe-annotation">
+        <span class="annotation-badge">SCR-AUTH-02</span>
+        <strong>Public Route:</strong> Self-registration captures Full Name as the primary human identifier (Decision U-06). Newly registered users receive the default <code>Inventory Clerk</code> role (FR-001).
+      </div>
+
+      <div class="auth-header">
+        <div class="auth-brand">
+          <div class="auth-brand-logo">IP</div>
+          <span>IPMS Enterprise</span>
+        </div>
+        <h1 class="auth-title">Create Staff Account</h1>
+        <p class="auth-subtitle">New accounts are assigned Inventory Clerk permissions by default.</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); IPMS.navigateTo('dashboard');">
+        <div class="form-group">
+          <label class="form-label" for="reg-fullname">Full Name <span class="required">*</span></label>
+          <input type="text" id="reg-fullname" class="form-input" placeholder="e.g. Morgan Rivera" required>
+          <div class="form-helper-text">Primary identifier displayed across all system records and audit logs (Decision U-06).</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Corporate Email Address <span class="required">*</span></label>
+          <input type="email" id="reg-email" class="form-input" placeholder="m.rivera@company.internal" required>
+        </div>
+
+        <div class="grid-2col">
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password <span class="required">*</span></label>
+            <input type="password" id="reg-password" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-confirm">Confirm Password <span class="required">*</span></label>
+            <input type="password" id="reg-confirm" class="form-input" required>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Register Staff Account</button>
+        </div>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a onclick="IPMS.navigateTo('auth-login')">Sign In</a>
+      </div>
+    </div>
+
+    <!-- SCR-AUTH-03: Self-Service Forgot Password Request -->
+    <div id="screen-auth-forgot-password" class="screen-container auth-card">
+      <div class="wireframe-annotation">
+        <span class="annotation-badge">SCR-AUTH-03</span>
+        <strong>Public Route:</strong> Dispatches self-service password recovery email. Returns generic HTTP 200 regardless of email existence to prevent user enumeration attacks (NFR-009, Decision U-13).
+      </div>
+
+      <div class="auth-header">
+        <h1 class="auth-title">Reset Your Password</h1>
+        <p class="auth-subtitle">Enter your registered email address and we will dispatch a time-bound reset link.</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('If an account exists for this email, a reset token has been dispatched (routed safely to in-memory mailbox per NFR-009).'); IPMS.navigateTo('auth-reset-password');">
+        <div class="form-group">
+          <label class="form-label" for="forgot-email">Registered Email Address <span class="required">*</span></label>
+          <input type="email" id="forgot-email" class="form-input" placeholder="name@company.internal" required>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Send Password Reset Link</button>
+        </div>
+      </form>
+
+      <div class="auth-footer">
+        <a onclick="IPMS.navigateTo('auth-login')">← Back to Sign In</a>
+      </div>
+    </div>
+
+    <!-- SCR-AUTH-04: Password Reset Confirmation -->
+    <div id="screen-auth-reset-password" class="screen-container auth-card">
+      <div class="wireframe-annotation">
+        <span class="annotation-badge">SCR-AUTH-04</span>
+        <strong>Public Route:</strong> Arrives via <code>/reset-password?token=...</code>. Consumes single-use time-bound reset token from email link.
+      </div>
+
+      <div class="auth-header">
+        <h1 class="auth-title">Establish New Password</h1>
+        <p class="auth-subtitle">Choose a secure password meeting enterprise security guidelines.</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('Password reset successful! Please sign in with your new permanent password.'); IPMS.navigateTo('auth-login');">
+        <div class="form-group">
+          <label class="form-label">Reset Security Token</label>
+          <input type="text" class="form-input" value="tok_20261115_9841249bce" readonly style="background-color: var(--bg-subtle);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reset-new-pwd">New Password <span class="required">*</span></label>
+          <input type="password" id="reset-new-pwd" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reset-confirm-pwd">Confirm New Password <span class="required">*</span></label>
+          <input type="password" id="reset-confirm-pwd" class="form-input" required>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Save New Password & Sign In</button>
+        </div>
+      </form>
+
+      <div class="auth-footer">
+        <a onclick="IPMS.navigateTo('auth-login')">← Return to Login</a>
+      </div>
+    </div>
+
+    <!-- SCR-AUTH-05: Mandatory Temporary Password Change -->
+    <div id="screen-auth-change-password" class="screen-container auth-card auth-card-wide">
+      <div class="wireframe-annotation">
+        <span class="annotation-badge">SCR-AUTH-05</span>
+        <strong>Mandatory Interceptor:</strong> Blocks all application access for users with <code>mustChangePassword: true</code> after logging in with an Admin-generated temporary password (Decision UD-02).
+      </div>
+
+      <div class="auth-header">
+        <h1 class="auth-title">Permanent Password Required</h1>
+        <p class="auth-subtitle">You have authenticated using an Admin-assisted temporary password.</p>
+      </div>
+
+      <div class="alert-banner alert-warning">
+        <strong>Security Policy:</strong> Temporary passwords expire after 24 hours (Decision UD-02). You must establish a permanent personal password before accessing system tools.
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('Permanent password saved! Welcome to IPMS.'); IPMS.navigateTo('dashboard');">
+        <div class="form-group">
+          <label class="form-label">Staff Member</label>
+          <input type="text" class="form-input" value="Emma Watson (Inventory Clerk)" readonly style="background-color: var(--bg-subtle);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="change-temp-pwd">Temporary Password Provided by Admin <span class="required">*</span></label>
+          <input type="password" id="change-temp-pwd" class="form-input" placeholder="Enter the 24h temporary password" required>
+        </div>
+
+        <div class="grid-2col">
+          <div class="form-group">
+            <label class="form-label" for="change-new-pwd">New Permanent Password <span class="required">*</span></label>
+            <input type="password" id="change-new-pwd" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="change-confirm-pwd">Confirm Permanent Password <span class="required">*</span></label>
+            <input type="password" id="change-confirm-pwd" class="form-input" required>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display:flex; gap:10px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Update Password & Enter IPMS</button>
+          <button type="button" class="btn btn-secondary" onclick="IPMS.navigateTo('auth-login')">Sign Out</button>
+        </div>
+      </form>
+    </div>
+
+  </main>
+
+  <!-- ==========================================================================
+       LAYOUT 2: AUTHENTICATED APPLICATION SHELL (APP-SHELL)
+       ========================================================================== -->
+  <div id="app-shell">
+
+    <!-- Top Application Bar -->
+    <header id="top-bar">
+      <div class="top-bar-left">
+        <button class="nav-toggle-btn" onclick="IPMS.toggleSidebar()" title="Toggle Navigation Drawer">
+          ☰
+        </button>
+
+        <div class="brand-identifier" onclick="IPMS.navigateTo('dashboard')" style="cursor: pointer;">
+          <div class="brand-box">IP</div>
+          <span>IPMS</span>
+          <span style="font-weight: 400; color: var(--text-muted); font-size: 13px;">| Inventory & Procurement</span>
+        </div>
+
+        <!-- Dynamic Breadcrumb Trail -->
+        <nav id="breadcrumbs-trail" class="breadcrumbs-trail" aria-label="Breadcrumb"></nav>
+      </div>
+
+      <div class="top-bar-right">
+        <!-- SSE Health Status Pill -->
+        <div id="topbar-sse-pill" class="sse-status-pill" onclick="IPMS.cycleSseStatus()" title="Server-Sent Events Connection (Click to simulate connection state)">
+          <span id="topbar-sse-dot" class="sse-dot connected"></span>
+          <span id="topbar-sse-text">Live</span>
+        </div>
+
+        <!-- Notification Bell Trigger -->
+        <button class="notif-btn" onclick="IPMS.openNotificationDrawer()" title="Open Notifications Inbox">
+          🔔
+          <span id="topbar-notif-badge" class="notif-badge" style="display: none;">0</span>
+        </button>
+
+        <!-- User Profile Menu Trigger -->
+        <button id="user-menu-trigger" class="user-menu-trigger" onclick="IPMS.toggleUserDropdown()">
+          <div id="topbar-avatar" class="user-avatar-circle">ST</div>
+          <div class="user-info-text">
+            <span id="topbar-fullname" class="user-fullname">Sam Taylor</span>
+            <span id="topbar-role-tag" class="user-role-tag">Inventory Clerk</span>
+          </div>
+          <span style="font-size: 10px; color: var(--text-muted); margin-left: 2px;">▼</span>
+        </button>
+
+        <!-- User Profile Dropdown -->
+        <div id="user-dropdown-menu" class="user-dropdown-menu">
+          <div class="user-dropdown-item" onclick="alert('Profile dialog: View user metadata, email, and security logs.');">
+            👤 My Account Profile
+          </div>
+          <div class="user-dropdown-item" onclick="IPMS.navigateTo('auth-change-password');">
+            🔑 Change Password
+          </div>
+          <div class="user-dropdown-item" style="color: #dc2626;" onclick="IPMS.navigateTo('auth-login');">
+            🚪 Sign Out (Logout)
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Role-Aware Side Navigation Drawer -->
+    <nav id="sidebar" aria-label="Main Sidebar Navigation">
+      <div>
+        <!-- Group 1: Operational Overview -->
+        <div class="nav-section">
+          <div class="nav-section-title">Operational Overview</div>
+          <a class="nav-item active" data-screen="dashboard" onclick="IPMS.navigateTo('dashboard')">
+            <div class="nav-item-left">
+              <span class="nav-icon">📊</span>
+              <span class="nav-label">Dashboard</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Group 2: Inventory Management -->
+        <div class="nav-section">
+          <div class="nav-section-title">Inventory Management</div>
+          <a class="nav-item" data-screen="items" onclick="IPMS.navigateTo('items')">
+            <div class="nav-item-left">
+              <span class="nav-icon">📦</span>
+              <span class="nav-label">Item Catalog</span>
+            </div>
+            <span id="sidebar-low-stock-badge" class="nav-badge nav-badge-alert" style="display: none;" title="Low Stock Alerts Count">0</span>
+          </a>
+        </div>
+
+        <!-- Group 3: Procurement Workflow -->
+        <div class="nav-section">
+          <div class="nav-section-title">Procurement Workflow</div>
+          <a class="nav-item" data-screen="requisitions" onclick="IPMS.navigateTo('requisitions')">
+            <div class="nav-item-left">
+              <span class="nav-icon">📋</span>
+              <span class="nav-label">Requisitions</span>
+            </div>
+            <span id="sidebar-req-badge" class="nav-badge nav-badge-action" style="display: none;" title="Actionable Pending Tasks for Role">0</span>
+          </a>
+        </div>
+
+        <!-- Group 4: Administration & Compliance (Admin Only per SAD §2.5) -->
+        <div id="nav-section-admin" class="nav-section" style="display: none;">
+          <div class="nav-section-title">Administration & Governance</div>
+          <a class="nav-item" data-screen="users" onclick="IPMS.navigateTo('users')">
+            <div class="nav-item-left">
+              <span class="nav-icon">👥</span>
+              <span class="nav-label">User Management</span>
+            </div>
+          </a>
+          <a class="nav-item" data-screen="audit-logs" onclick="IPMS.navigateTo('audit-logs')">
+            <div class="nav-item-left">
+              <span class="nav-icon">📜</span>
+              <span class="nav-label">System Audit Logs</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-version">IPMS Core v1.0</span>
+        <button class="nav-toggle-btn" style="width:24px; height:24px; font-size:11px;" onclick="IPMS.toggleSidebar()" title="Collapse / Expand Sidebar">
+          ◀
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content Viewport Canvas -->
+    <main id="main-viewport">
+
+      <!-- ======================================================================
+           SCR-DASH-01: REAL-TIME OPERATIONAL DASHBOARD
+           ====================================================================== -->
+      <section id="screen-dashboard" class="screen-container active-screen">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-DASH-01</span>
+          <strong>Operational Dashboard:</strong> Displays aggregated metrics, low-stock alerts, 5 recent requisitions, and a role-tailored activity feed (Decision U-11). Updates seamlessly in real-time via Server-Sent Events (SSE) (FR-009, FR-010).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>Operational Dashboard</h1>
+            <p class="screen-subtitle">Real-time inventory status, approval queues, and workflow activities.</p>
+          </div>
+          <div class="screen-actions-area">
+            <button class="btn btn-secondary btn-sm" onclick="IPMS.navigateTo('items')">Browse Catalog</button>
+            <button class="btn btn-primary btn-sm" onclick="IPMS.navigateTo('requisitions')">View Requisitions</button>
+          </div>
+        </div>
+
+        <!-- Top 4 Metric Cards Grid -->
+        <div class="metrics-grid">
+          <div class="metric-card" onclick="IPMS.navigateTo('items')">
+            <div class="metric-card-header">
+              <span>Total Active SKUs</span>
+              <span>📦</span>
+            </div>
+            <div id="dash-metric-total-items" class="metric-value">0</div>
+            <div class="metric-card-footer">Catalog items in active status</div>
+          </div>
+
+          <div class="metric-card metric-alert" onclick="IPMS.navigateTo('items'); state.itemFilter.stockStatus='low'; IPMS.renderItemsCatalog();">
+            <div class="metric-card-header">
+              <span>Low Stock Alerts</span>
+              <span>⚠️</span>
+            </div>
+            <div id="dash-metric-low-stock" class="metric-value">0</div>
+            <div class="metric-card-footer">Items below reorder threshold (Click to filter)</div>
+          </div>
+
+          <div class="metric-card" onclick="IPMS.navigateTo('requisitions')">
+            <div class="metric-card-header">
+              <span>Active Requisitions</span>
+              <span>📋</span>
+            </div>
+            <div id="dash-metric-active-reqs" class="metric-value">0</div>
+            <div class="metric-card-footer">Orders currently in approval or receipt</div>
+          </div>
+
+          <!-- Role-Tailored 4th Metric Card -->
+          <div class="metric-card" onclick="IPMS.navigateTo('requisitions')">
+            <div class="metric-card-header">
+              <span id="dash-metric-role-title">Pending Action Items</span>
+              <span>⚡</span>
+            </div>
+            <div id="dash-metric-role-value" class="metric-value">0</div>
+            <div id="dash-metric-role-subtitle" class="metric-card-footer">Role-tailored workflow queue</div>
+          </div>
+        </div>
+
+        <!-- Main Workspace: 8:4 Split -->
+        <div class="dashboard-workspace-grid">
+          <!-- Left Column (8/12): 5 Recent Requisitions -->
+          <div class="card-container">
+            <div class="card-header-row">
+              <h3>Recent Organization Requisitions</h3>
+              <button class="btn btn-secondary btn-sm" onclick="IPMS.navigateTo('requisitions')">View All Requisitions →</button>
+            </div>
+            <div class="datagrid-table-wrap" style="border:none;">
+              <table class="datagrid-table">
+                <thead>
+                  <tr>
+                    <th>Requisition ID</th>
+                    <th>Requester</th>
+                    <th>Submitted</th>
+                    <th class="align-right">Total Amount</th>
+                    <th class="align-center">Status</th>
+                    <th class="align-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-recent-reqs-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Column (4/12): Role-Tailored Activity Feed (Decision U-11) -->
+          <div class="card-container">
+            <div class="card-header-row">
+              <h3>Role Activity Feed</h3>
+              <span style="font-size:11px; color:var(--text-muted); font-weight:500;">Tailored (U-11)</span>
+            </div>
+            <ul id="dash-activity-feed" class="activity-feed-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-ITEM-01: ITEM CATALOG & STOCK MANAGEMENT
+           ====================================================================== -->
+      <section id="screen-items" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-ITEM-01</span>
+          <strong>Item Catalog & Inventory:</strong> Central SKU repository. Row selection opens the contextual right-side Item Detail Drawer (DRAWER-ITEM-01) without discarding catalog context (Decision U-02). Non-admins default to <code>status=active</code> (Decision D-011).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>Item Catalog & Inventory <span id="catalog-item-count" class="chip chip-gray" style="margin-left: 8px;">0 items</span></h1>
+            <p class="screen-subtitle">SKU specifications, location tracking, stock levels, and controlled count adjustments.</p>
+          </div>
+          <div class="screen-actions-area">
+            <button id="catalog-btn-add-item" class="btn btn-primary" onclick="IPMS.openItemCreateModal()" style="display: none;">
+              + Add New Item
+            </button>
+            <button id="catalog-btn-sheets-export" class="btn btn-secondary" onclick="IPMS.triggerQuickExport()">
+              📊 Quick Export (Google Sheets)
+            </button>
+            <button class="btn btn-secondary" onclick="IPMS.openCustomExportModal()">
+              ⚙ Custom Export...
+            </button>
+            <button class="btn btn-secondary" onclick="IPMS.downloadCsvExport()" title="Download raw CSV file directly">
+              📥 Download CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="table-toolbar">
+          <div class="toolbar-filters">
+            <div class="search-box-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="catalog-search-input" class="search-input" placeholder="Search SKU or Item Name...">
+            </div>
+
+            <select id="catalog-location-select" class="form-select" style="width: auto;" onchange="state.itemFilter.location=this.value; IPMS.renderItemsCatalog();">
+              <option value="ALL">All Storage Locations</option>
+              <option value="Aisle A">Aisle A</option>
+              <option value="Aisle B">Aisle B</option>
+              <option value="Aisle C">Aisle C</option>
+              <option value="Aisle D">Aisle D</option>
+              <option value="Aisle E">Aisle E</option>
+              <option value="Aisle F">Aisle F</option>
+            </select>
+
+            <select id="catalog-stock-select" class="form-select" style="width: auto;" onchange="state.itemFilter.stockStatus=this.value; IPMS.renderItemsCatalog();">
+              <option value="ALL">All Stock Levels</option>
+              <option value="low">Low Stock Only (Breached)</option>
+              <option value="normal">Normal Stock Buffer</option>
+            </select>
+
+            <!-- Admin-only Catalog Active/Inactive Toggle (Decision D-011) -->
+            <select id="catalog-filter-status" class="form-select" style="width: auto; display: none;" onchange="state.itemFilter.catalogStatus=this.value; IPMS.renderItemsCatalog();">
+              <option value="ACTIVE">Active Items Only (Default)</option>
+              <option value="INACTIVE">Decommissioned / Soft-Deleted Items</option>
+              <option value="ALL">All Items (Active + Inactive)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" onclick="IPMS.resetItemFilters()">Clear Filters</button>
+        </div>
+
+        <!-- DataGrid Table -->
+        <div class="datagrid-table-wrap">
+          <table class="datagrid-table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Item Name</th>
+                <th>Location</th>
+                <th class="align-right">On-Hand Qty</th>
+                <th class="align-right">Unit Price</th>
+                <th class="align-right">Threshold</th>
+                <th class="align-center">Stock Status</th>
+                <th id="th-catalog-status" class="align-center" style="display: table-cell;">Status</th>
+                <th class="align-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="catalog-table-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Standardized Pagination Bar (Decision D-012, SAD §7.4) -->
+        <div class="pagination-bar">
+          <div>Showing 1–10 of 10 items (Page 1 of 1)</div>
+          <div class="pagination-right">
+            <span>Rows per page: <strong>50</strong></span>
+            <div>
+              <button class="page-btn" disabled>|◀</button>
+              <button class="page-btn" disabled>◀</button>
+              <button class="page-btn" disabled>▶</button>
+              <button class="page-btn" disabled>▶|</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-REQ-01: SHARED REQUISITION LIST
+           ====================================================================== -->
+      <section id="screen-requisitions" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-REQ-01</span>
+          <strong>Shared Requisition List:</strong> Single shared screen with role-specific tab presets (Decision U-09): Clerk defaults to "My Requisitions", Manager to "Pending Manager", Finance to "Pending Finance", Admin to "All Requisitions". Only Clerks can create requisitions (FR-004).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>Purchase Requisitions</h1>
+            <p class="screen-subtitle">Track procurement lifecycle from submission to physical goods receipt verification.</p>
+          </div>
+          <div class="screen-actions-area">
+            <button id="req-btn-create" class="btn btn-primary" onclick="IPMS.navigateTo('requisition-new')" style="display: none;">
+              + Create Requisition
+            </button>
+          </div>
+        </div>
+
+        <!-- Role-Specific Tabs Container (Decision U-09) -->
+        <div id="req-tabs-container" class="tabs-container"></div>
+
+        <!-- Filter & Search Bar -->
+        <div class="table-toolbar">
+          <div class="toolbar-filters">
+            <div class="search-box-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="req-search-input" class="search-input" placeholder="Search Requisition ID or Requester Name...">
+            </div>
+
+            <select id="req-filter-status" class="form-select" style="width: auto;" onchange="state.reqFilter.status=this.value; IPMS.renderRequisitionsList();">
+              <option value="ALL">All Lifecycle Statuses</option>
+              <option value="Pending">Pending (Manager Review)</option>
+              <option value="ManagerApproved">ManagerApproved (Finance Review)</option>
+              <option value="FinanceApproved">FinanceApproved (Ready for Receipt)</option>
+              <option value="ExcessPendingManager">ExcessPendingManager (Dock Excess)</option>
+              <option value="ExcessPendingFinance">ExcessPendingFinance</option>
+              <option value="ExcessApproved">ExcessApproved</option>
+              <option value="ExcessRejected">ExcessRejected (UD-01)</option>
+              <option value="Received">Received (Terminal)</option>
+              <option value="Rejected">Rejected (Terminal)</option>
+              <option value="Cancelled">Cancelled (Terminal)</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" onclick="state.reqFilter={search:'', status:'ALL'}; document.getElementById('req-search-input').value=''; document.getElementById('req-filter-status').value='ALL'; IPMS.renderRequisitionsList();">Reset Filters</button>
+        </div>
+
+        <!-- DataGrid Table -->
+        <div class="datagrid-table-wrap">
+          <table class="datagrid-table">
+            <thead>
+              <tr>
+                <th>Requisition ID</th>
+                <th>Requester Full Name</th>
+                <th>Created Date</th>
+                <th class="align-center">Line Items</th>
+                <th class="align-right">Grand Total</th>
+                <th class="align-center">Status</th>
+                <th class="align-right">Contextual Action</th>
+              </tr>
+            </thead>
+            <tbody id="req-table-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="pagination-bar">
+          <div>Showing 1–8 of 8 requisitions</div>
+          <div class="pagination-right">
+            <span>Rows per page: <strong>50</strong></span>
+            <div>
+              <button class="page-btn" disabled>|◀</button>
+              <button class="page-btn" disabled>◀</button>
+              <button class="page-btn" disabled>▶</button>
+              <button class="page-btn" disabled>▶|</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-REQ-02: CREATE PURCHASE REQUISITION (Clerk Only)
+           ====================================================================== -->
+      <section id="screen-requisition-new" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-REQ-02</span>
+          <strong>Requisition Creation:</strong> Restricted to Inventory Clerks (FR-004). Captures unit prices as snapshots at creation time (Price Snapshot Rule). <strong>No draft workflow exists</strong>; submission immediately transitions to <code>Pending</code> (Decision U-01).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1><a onclick="IPMS.navigateTo('requisitions')" style="text-decoration:none; color:inherit;">←</a> New Purchase Requisition</h1>
+            <p class="screen-subtitle">Create multi-item procurement request for managerial and financial approval.</p>
+          </div>
+        </div>
+
+        <!-- Requester Identity Card -->
+        <div class="card-container" style="padding: 16px; margin-bottom: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="font-size:12px; color:var(--text-muted);">Requester:</span>
+              <strong id="newreq-requester-name" style="margin-left: 6px;">Sam Taylor</strong>
+              <span class="chip chip-gray" style="margin-left: 6px;">Inventory Clerk</span>
+            </div>
+            <div>
+              <span style="font-size:12px; color:var(--text-muted);">Initial Status:</span>
+              <span class="chip chip-pending" style="margin-left: 6px;">Pending (Direct Submission)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Item Selection Card -->
+        <div class="card-container" style="padding: 20px; margin-bottom: 20px;">
+          <h3 style="margin-bottom: 12px; font-size:14px;">Select Active Catalog Item</h3>
+          <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+            <div style="flex-grow: 1; min-width: 280px;">
+              <label class="form-label" for="newreq-item-picker">Active Item SKU & Name <span class="required">*</span></label>
+              <select id="newreq-item-picker" class="form-select"></select>
+            </div>
+            <div style="width: 140px;">
+              <label class="form-label" for="newreq-qty-input">Requested Units <span class="required">*</span></label>
+              <input type="number" id="newreq-qty-input" class="form-input" min="1" value="1">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="IPMS.addLineItemToNewReq()">
+              + Add Line Item
+            </button>
+          </div>
+        </div>
+
+        <!-- Added Line Items Table -->
+        <div class="card-container" style="margin-bottom: 20px;">
+          <div class="card-header-row">
+            <h3>Selected Requisition Line Items</h3>
+            <span style="font-size:12px; color:var(--text-muted);">Prices are snapshotted permanently at submission time</span>
+          </div>
+          <div class="datagrid-table-wrap" style="border:none;">
+            <table class="datagrid-table">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Item Name</th>
+                  <th class="align-right">Current On-Hand</th>
+                  <th class="align-right">Snapshot Unit Price</th>
+                  <th>Requested Quantity</th>
+                  <th class="align-right">Line Total</th>
+                  <th class="align-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="newreq-lines-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sticky Submission Footer -->
+        <div class="card-container" style="padding: 18px 24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <div style="font-size:12px; color:var(--text-muted);">
+                Items: <strong id="newreq-summary-item-count">0</strong> | Total Units: <strong id="newreq-summary-unit-count">0</strong>
+              </div>
+              <div style="font-size: 22px; font-weight: 700; color: var(--text-main); margin-top: 2px;">
+                Grand Total: <span id="newreq-summary-grand-total" style="color: var(--wire-dark);">$0.00</span>
+              </div>
+              <div style="font-size:11px; color:#d97706; margin-top:4px;">
+                ⚠️ Notice: Submitting immediately enters Pending status. No draft workflow exists (Decision U-01).
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-secondary" onclick="IPMS.navigateTo('requisitions')">Cancel & Discard</button>
+              <button id="newreq-btn-submit" class="btn btn-primary btn-lg" onclick="IPMS.submitNewRequisition()">
+                Submit Requisition (Immediate Pending)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-REQ-03: REQUISITION DETAIL, TIMELINE & APPROVAL REVIEW
+           ====================================================================== -->
+      <section id="screen-requisition-detail" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-REQ-03</span>
+          <strong>Requisition Detail & Review:</strong> Displays snapshotted line items, embedded audit timeline (Decision D-008), and rejection history (Decision D-009). <strong>Reviewers cannot modify requested quantities</strong>; changes require rejection with mandatory reason, and creator submits new requisition (Decision UD-03, superseding U-04).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>
+              <a onclick="IPMS.navigateTo('requisitions')" style="text-decoration:none; color:inherit;">←</a>
+              <span id="req-detail-code">REQ-2026-0000</span>
+              <span id="req-detail-status-chip" style="margin-left: 8px;"></span>
+            </h1>
+            <p class="screen-subtitle">Submitted on <span id="req-detail-created-at">--</span> by <strong id="req-detail-creator">--</strong></p>
+          </div>
+          <div class="screen-actions-area">
+            <span style="font-size: 13px; color: var(--text-muted);">Requisition Total:</span>
+            <span id="req-detail-grand-total" style="font-size: 20px; font-weight: 700; color: var(--text-main);">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Terminal Rejection Alert Banner (Decision UD-03) -->
+        <div id="req-detail-rejection-banner" class="alert-banner alert-danger" style="display: none;">
+          <div>
+            <strong>TERMINAL REJECTION NOTICE (Decision UD-03):</strong> This requisition has been rejected by the reviewer.
+            <div style="margin-top: 6px; font-size: 13px;">
+              <strong>Rejection Reason:</strong> "<span id="req-detail-rejection-reason-text"></span>"
+            </div>
+            <div style="margin-top: 6px; font-size: 12px; color: #7f1d1d;">
+              Reviewers cannot modify quantities. To proceed with adjusted amounts, the requester must submit a new requisition via <code>/requisitions/new</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Excess Delivery Notice Banner (Decision U-05.2, UD-01) -->
+        <div id="req-detail-excess-banner" class="alert-banner alert-warning" style="display: none;">
+          <div>
+            <strong>PHYSICAL DOCK DELIVERY NOTICE:</strong>
+            <div id="req-detail-excess-text" style="margin-top: 4px;"></div>
+          </div>
+        </div>
+
+        <!-- Main Grid: 8:4 Split (Line Items vs Timeline) -->
+        <div class="dashboard-workspace-grid">
+          <!-- Left Column (8/12): Line Items Table -->
+          <div class="card-container">
+            <div class="card-header-row">
+              <h3>Line Items & Unit Snapshot Pricing</h3>
+              <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Reviewer Quantities Immutable (UD-03)</span>
+            </div>
+            <div class="datagrid-table-wrap" style="border:none;">
+              <table class="datagrid-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Item Name</th>
+                    <th class="align-right">Snapshot Price</th>
+                    <th class="align-right">Requested Qty</th>
+                    <th class="align-right">Approved Qty</th>
+                    <th class="align-right">Received Qty</th>
+                    <th class="align-right">Line Total</th>
+                  </tr>
+                </thead>
+                <tbody id="req-detail-items-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Column (4/12): Audit Timeline & Rejection History -->
+          <div class="card-container">
+            <div class="card-header-row">
+              <h3>Audit Lifecycle Timeline</h3>
+              <span style="font-size: 11px; color: var(--text-muted);">Decisions D-008 & D-014</span>
+            </div>
+            <div id="req-detail-timeline" class="timeline-container"></div>
+          </div>
+        </div>
+
+        <!-- Sticky Action Control Bar (Role Governed) -->
+        <div class="sticky-action-bar">
+          <div>
+            <span style="font-size: 12px; color: var(--text-muted);">Active Viewer:</span>
+            <strong id="req-detail-viewer-name" style="margin-left: 4px;">Sam Taylor</strong>
+          </div>
+          <div id="req-detail-action-buttons" style="display: flex; gap: 10px;"></div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-REQ-04: GOODS RECEIPT & PHYSICAL QUANTITY VERIFICATION (Clerk Only)
+           ====================================================================== -->
+      <section id="screen-requisition-receipt" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-REQ-04</span>
+          <strong>Goods Receipt Verification:</strong> Clerk role only (FR-007, Decision U-05). Exactly one receipt event per requisition in MVP (Decision U-05.1); partial delivery enters inventory directly without tracking remaining backorders. Excess shipment triggers 4-step sequence (Decision U-05.2); rejected excess permits receiving approved units at dock (Decision UD-01).
+        </div>
+
+        <!-- UNRESOLVED QUESTION ANNOTATION: Q-SAD-01 -->
+        <div class="unresolved-question-card">
+          <strong>⚠️ PENDING STAKEHOLDER CONFIRMATION (Q-SAD-01):</strong>
+          Separation of Duties on Goods Receipt: The SRS and RBAC matrix permit any Inventory Clerk to execute goods receipt. Stakeholder confirmation is required to decide whether an Inventory Clerk may receive goods for an order that they personally created, or if the system must enforce a four-eyes block. Wireframe implements neutral placeholder behavior pending confirmation.
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>
+              <a onclick="IPMS.navigateTo('requisition-detail')" style="text-decoration:none; color:inherit;">←</a>
+              Loading Dock Physical Goods Receipt
+            </h1>
+            <p class="screen-subtitle">Requisition: <strong id="receipt-req-code">REQ-2026-0000</strong> | Approved Date: <span id="receipt-approved-date">--</span> | Approved Line Items: <span id="receipt-total-items">--</span></p>
+          </div>
+        </div>
+
+        <div id="receipt-guidance-banner" class="alert-banner alert-info"></div>
+
+        <!-- Goods Receipt Items Table -->
+        <div class="card-container" style="margin-bottom: 24px;">
+          <div class="card-header-row">
+            <h3>Physical Count Verification</h3>
+            <span style="font-size:12px; color:var(--text-muted);">Enter actual received units inspected on dock</span>
+          </div>
+          <div class="datagrid-table-wrap" style="border:none;">
+            <table class="datagrid-table">
+              <thead>
+                <tr>
+                  <th>SKU & Description</th>
+                  <th>Assigned Storage Bay</th>
+                  <th class="align-right">Approved Quantity</th>
+                  <th>Actual Delivered Count</th>
+                  <th class="align-center">Delivery Variance</th>
+                </tr>
+              </thead>
+              <tbody id="receipt-table-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Receipt Action Card -->
+        <div class="card-container" style="padding: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <div style="font-size:13px; font-weight:600;">Single-Event Receipt Commitment (MVP Rule U-05.1)</div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                Confirming goods receipt atomically updates on-hand inventory levels in the database.
+              </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-secondary" onclick="IPMS.navigateTo('requisition-detail')">Cancel Verification</button>
+              <button id="receipt-btn-submit" class="btn btn-success btn-lg" onclick="IPMS.submitGoodsReceipt()">
+                Confirm Goods Receipt (Commit Stock)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-USER-01: USER MANAGEMENT (Admin Only)
+           ====================================================================== -->
+      <section id="screen-users" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-USER-01</span>
+          <strong>User Governance & Access Control:</strong> Admin only (FR-023). Displays Full Name as the primary human identifier (Decision U-06). Enforces self-deactivation guard and last active Admin account guard. Supports Admin-assisted temporary password reset (Decision UD-02).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>User Governance & Access Control</h1>
+            <p class="screen-subtitle">Manage staff accounts, assign RBAC permissions, and issue temporary credentials.</p>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="table-toolbar">
+          <div class="toolbar-filters">
+            <div class="search-box-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="users-search-input" class="search-input" placeholder="Search by Full Name or Email...">
+            </div>
+
+            <select id="users-role-filter" class="form-select" style="width: auto;" onchange="state.userFilter.role=this.value; IPMS.renderUsersList();">
+              <option value="ALL">All Roles</option>
+              <option value="Inventory Clerk">Inventory Clerk</option>
+              <option value="Manager">Manager</option>
+              <option value="Finance Officer">Finance Officer</option>
+              <option value="Admin">Admin</option>
+            </select>
+
+            <select id="users-status-filter" class="form-select" style="width: auto;" onchange="state.userFilter.status=this.value; IPMS.renderUsersList();">
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">Active Staff</option>
+              <option value="DEACTIVATED">Deactivated</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- DataGrid Table -->
+        <div class="datagrid-table-wrap">
+          <table class="datagrid-table">
+            <thead>
+              <tr>
+                <th>Full Name (Primary Identifier, U-06)</th>
+                <th>Corporate Email</th>
+                <th>Role</th>
+                <th class="align-center">Account Status</th>
+                <th class="align-center">Temporary Credential</th>
+                <th>Created</th>
+                <th class="align-right">Governance Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ======================================================================
+           SCR-AUDIT-01: SYSTEM AUDIT LOGS (Admin Only)
+           ====================================================================== -->
+      <section id="screen-audit-logs" class="screen-container">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">SCR-AUDIT-01</span>
+          <strong>System Audit Trail:</strong> Admin only (FR-014). Immutable append-only log of all state-changing mutations. Displays Actor Full Name (Decision U-06). Passwords and tokens are strictly excluded (NFR-009).
+        </div>
+
+        <div class="screen-header-bar">
+          <div class="screen-title-area">
+            <h1>System Audit Trail & Compliance Inspection</h1>
+            <p class="screen-subtitle">Immutable compliance records capturing before/after deltas and state changes.</p>
+          </div>
+        </div>
+
+        <!-- Multi-Criteria Filter Bar -->
+        <div class="table-toolbar">
+          <div class="toolbar-filters">
+            <select id="audit-filter-entity" class="form-select" style="width: auto;" onchange="state.auditFilter.entity=this.value; IPMS.renderAuditLogs();">
+              <option value="ALL">All Entities</option>
+              <option value="Requisition">Requisitions</option>
+              <option value="Item">Catalog Items</option>
+              <option value="User">Users</option>
+            </select>
+
+            <select id="audit-filter-action" class="form-select" style="width: auto;" onchange="state.auditFilter.action=this.value; IPMS.renderAuditLogs();">
+              <option value="ALL">All Actions</option>
+              <option value="CREATE">CREATE</option>
+              <option value="APPROVE">APPROVE</option>
+              <option value="REJECT">REJECT</option>
+              <option value="RECEIVE">RECEIVE</option>
+              <option value="ADJUST">ADJUST</option>
+              <option value="EXCESS_REQUEST">EXCESS_REQUEST</option>
+              <option value="EXCESS_REJECT">EXCESS_REJECT</option>
+              <option value="RESET_PASSWORD">RESET_PASSWORD</option>
+            </select>
+
+            <div class="search-box-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="audit-actor-search" class="search-input" placeholder="Search by actor name...">
+            </div>
+          </div>
+        </div>
+
+        <!-- DataGrid Table -->
+        <div class="datagrid-table-wrap">
+          <table class="datagrid-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Performed By (U-06)</th>
+                <th>Entity</th>
+                <th>Entity ID</th>
+                <th>Action</th>
+                <th>Details Summary</th>
+                <th class="align-right">Inspect</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ======================================================================
+         CONTEXTUAL DRAWERS
+         ====================================================================== -->
+    <div id="drawer-backdrop" class="drawer-backdrop" onclick="IPMS.closeAllDrawers()"></div>
+
+    <!-- DRAWER-ITEM-01: Contextual Item Detail Drawer -->
+    <aside id="drawer-item-detail" class="drawer-panel" aria-label="Item Details Drawer">
+      <div class="wireframe-annotation" style="margin: 12px 16px 0;">
+        <span class="annotation-badge">DRAWER-ITEM-01</span>
+        <strong>Context Preservation (Decision U-02):</strong> Slides in over the catalog table without unmounting the list. Quantity cannot be edited directly; stock updates require <code>MOD-ITEM-ADJUST</code> (Decision D-015).
+      </div>
+
+      <div class="drawer-header">
+        <h2>
+          <span id="drawer-item-sku" class="chip chip-gray">SKU-0000</span>
+          <span id="drawer-item-name" style="font-size: 15px;">Item Name</span>
+        </h2>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllDrawers()" title="Close Drawer">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <div id="drawer-item-alert-banner" class="alert-banner" style="display: none;"></div>
+
+        <div style="font-size:12px; font-weight:600; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; letter-spacing:0.5px;">
+          SKU Specifications
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:16px;">
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Storage Location</div>
+            <div id="drawer-item-location" style="font-weight:600;">--</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Standard Unit Price</div>
+            <div id="drawer-item-price" style="font-weight:600;">$0.00</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Current On-Hand Stock</div>
+            <div id="drawer-item-qty" style="font-size:16px; font-weight:700;">0</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Reorder Threshold</div>
+            <div id="drawer-item-threshold" style="font-weight:600;">0</div>
+          </div>
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Total Inventory Value</div>
+            <div id="drawer-item-total-value" style="font-weight:600; color:var(--wire-dark);">$0.00</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Description & Notes</div>
+          <div id="drawer-item-desc" style="font-size:13px; color:var(--text-secondary); line-height:1.4;">--</div>
+        </div>
+
+        <div style="font-size:11px; color:var(--text-muted); border-top:1px solid var(--border-subtle); padding-top:12px;">
+          <div>Created: <span id="drawer-item-created">--</span></div>
+          <div>Last Updated: <span id="drawer-item-updated">--</span></div>
+        </div>
+      </div>
+
+      <div id="drawer-item-footer" class="drawer-footer"></div>
+    </aside>
+
+    <!-- DRAWER-NOTIF-01: Global Notification Slide-Out Panel -->
+    <aside id="drawer-notifications" class="drawer-panel" aria-label="Notifications Center">
+      <div class="wireframe-annotation" style="margin: 12px 16px 0;">
+        <span class="annotation-badge">DRAWER-NOTIF-01</span>
+        <strong>Notification Center (FR-017, Decision U-10):</strong> Click to deep-link to the target record and automatically highlight relevant sections (rejection banner, goods receipt, or low-stock alert).
+      </div>
+
+      <div class="drawer-header">
+        <h2>🔔 Notifications Inbox</h2>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="state.notifications.forEach(n=>n.read=true); IPMS.renderNotificationList('all'); IPMS.showToast('All notifications marked as read (Decision D-010).', 'info');">
+            Mark all read
+          </button>
+          <button class="drawer-close-btn" onclick="IPMS.closeAllDrawers()">✕</button>
+        </div>
+      </div>
+
+      <div style="padding: 10px 16px 0; border-bottom: 1px solid var(--border-subtle); display:flex; gap:10px;">
+        <button class="tab-btn active" style="padding:6px 12px;" onclick="document.querySelectorAll('#drawer-notifications .tab-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); IPMS.renderNotificationList('all');">All</button>
+        <button class="tab-btn" style="padding:6px 12px;" onclick="document.querySelectorAll('#drawer-notifications .tab-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); IPMS.renderNotificationList('unread');">Unread</button>
+      </div>
+
+      <div id="notif-list-container" class="drawer-body" style="padding: 12px;"></div>
+    </aside>
+
+  </div>
+
+  <!-- ==========================================================================
+       SUPPORTING MODAL DIALOGS
+       ========================================================================== -->
+
+  <!-- MOD-ITEM-CREATE: Create Item Modal (Admin Only, Auto SKU) -->
+  <div id="modal-item-create" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Create New Inventory Item</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-ITEM-CREATE</span>
+          <strong>Auto-Generated SKU (Decision U-07):</strong> The SKU is assigned automatically upon creation. Manual user input of the SKU is strictly prohibited.
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-create-name">Item Name <span class="required">*</span></label>
+          <input type="text" id="modal-create-name" class="form-input" placeholder="e.g. Reinforced Gasket Seal 3-Inch" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-create-location">Warehouse Storage Location <span class="required">*</span></label>
+          <input type="text" id="modal-create-location" class="form-input" placeholder="e.g. Aisle B-03, Bin 08" required>
+        </div>
+        <div class="grid-3col">
+          <div class="form-group">
+            <label class="form-label" for="modal-create-price">Unit Price ($)</label>
+            <input type="number" id="modal-create-price" class="form-input" step="0.01" min="0" value="25.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-create-qty">Initial Stock</label>
+            <input type="number" id="modal-create-qty" class="form-input" min="0" value="50">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-create-threshold">Reorder Threshold</label>
+            <input type="number" id="modal-create-threshold" class="form-input" min="0" value="15">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-create-desc">Description</label>
+          <textarea id="modal-create-desc" class="form-textarea" rows="2" placeholder="Item technical specifications..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="IPMS.submitItemCreate()">Create Item (Auto SKU)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-ITEM-EDIT: Edit Item Metadata Modal (Admin Only, No Qty D-015) -->
+  <div id="modal-item-edit" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Edit Item Metadata</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-ITEM-EDIT</span>
+          <strong>Prohibition on Direct Quantity Modification (Decision D-015):</strong> Stock quantities cannot be edited here. Stock adjustments must exclusively execute via the Stock Adjustment Modal with an audit reason.
+        </div>
+        <div class="form-group">
+          <label class="form-label">System SKU</label>
+          <div id="modal-edit-sku-display" style="font-weight: 700; font-size: 14px;"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-edit-name">Item Name</label>
+          <input type="text" id="modal-edit-name" class="form-input">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-edit-location">Storage Location</label>
+          <input type="text" id="modal-edit-location" class="form-input">
+        </div>
+        <div class="grid-2col">
+          <div class="form-group">
+            <label class="form-label" for="modal-edit-price">Unit Price ($)</label>
+            <input type="number" id="modal-edit-price" class="form-input" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-edit-threshold">Reorder Threshold</label>
+            <input type="number" id="modal-edit-threshold" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-edit-desc">Description</label>
+          <textarea id="modal-edit-desc" class="form-textarea" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="IPMS.submitItemEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-ITEM-ADJUST: Manual Stock Adjustment (Admin & Clerk, FR-025, D-015) -->
+  <div id="modal-item-adjust" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Manual Stock Adjustment</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-ITEM-ADJUST</span>
+          <strong>Controlled Stock Adjustment (FR-025, Decision D-015):</strong> Signed integer adjustment (<code>+N</code> or <code>-N</code>). Rejects negative inventory results. Requires a mandatory audit reason.
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px; background-color:var(--bg-subtle); padding:12px; border-radius:4px;">
+          <div>SKU: <strong id="modal-adjust-sku">--</strong></div>
+          <div>Current Stock: <strong id="modal-adjust-current-qty">0</strong></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modal-adjust-value">Adjustment Value (+/- Integer) <span class="required">*</span></label>
+          <input type="number" id="modal-adjust-value" class="form-input" placeholder="e.g. +10 or -5" oninput="IPMS.onAdjustInputChange(this.value)" required>
+          <div class="form-helper-text">Enter positive number to increment, or negative to decrement physical count.</div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+          Resulting On-Hand Stock Preview: <strong id="modal-adjust-result-preview">0</strong>
+          <div id="modal-adjust-error" class="form-error-text" style="display: none;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modal-adjust-reason">Mandatory Adjustment Reason <span class="required">*</span></label>
+          <textarea id="modal-adjust-reason" class="form-textarea" rows="2" placeholder="e.g. Physical cycle count discrepancy in Aisle B" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="IPMS.submitStockAdjustment()">Commit Stock Adjustment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-ITEM-DELETE: Soft-Delete Confirmation (Admin Only, Decision U-08) -->
+  <div id="modal-item-delete" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Confirm Soft Deletion</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-ITEM-DELETE</span>
+          <strong>Soft Deletion (Decision U-08):</strong> Item is marked <code>isActive = false</code>. It disappears from normal catalog views while historical requisitions and audit records remain intact.
+        </div>
+        <p>Are you sure you want to soft-delete item: <strong id="modal-delete-item-name"></strong>?</p>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          This item will be hidden from non-administrative catalog views. Existing purchase requisitions referencing this SKU will continue to display historical snapshot data.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-danger-contained" onclick="IPMS.confirmItemDelete()">Confirm Soft Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-EXPORT-CUSTOM: Google Sheets Custom Export Modal (Decision U-12) -->
+  <div id="modal-export-custom" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Google Sheets Custom Export</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-EXPORT-CUSTOM</span>
+          <strong>Configurable Export (Decision U-12):</strong> Choose column selection and export scope (all vs filtered). Automatic fallback to direct CSV download if Sheets API is unavailable (FR-011, FR-026).
+        </div>
+
+        <!-- UNRESOLVED QUESTION ANNOTATION: Q-SAD-03 -->
+        <div class="unresolved-question-card">
+          <strong>⚠️ PENDING STAKEHOLDER CONFIRMATION (Q-SAD-03):</strong>
+          Google Sheets Target Destination: Stakeholder confirmation is required to decide whether exports create a brand new timestamped spreadsheet or update a pre-configured organization master spreadsheet ID.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Export Record Scope</label>
+          <div style="display:flex; gap:16px;">
+            <label style="font-size:13px;"><input type="radio" name="export-scope" value="filtered" checked> Export Filtered Records Only</label>
+            <label style="font-size:13px;"><input type="radio" name="export-scope" value="all"> Export Entire Catalog</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select Standard Columns</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; font-size:12px;">
+            <label><input type="checkbox" checked> SKU</label>
+            <label><input type="checkbox" checked> Item Name</label>
+            <label><input type="checkbox" checked> Description</label>
+            <label><input type="checkbox" checked> Storage Location</label>
+            <label><input type="checkbox" checked> On-Hand Quantity</label>
+            <label><input type="checkbox" checked> Unit Price</label>
+            <label><input type="checkbox" checked> Total Asset Value</label>
+            <label><input type="checkbox" checked> Reorder Threshold</label>
+            <label><input type="checkbox" checked> Stock Alert Status</label>
+            <label><input type="checkbox" checked> Catalog Status</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="IPMS.submitCustomExport()">Export to Google Sheets</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-REQ-REJECT: Requisition Rejection Modal (Decision UD-03) -->
+  <div id="modal-req-reject" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Reject Purchase Requisition</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-REQ-REJECT</span>
+          <strong>Prohibition on Reviewer Edits (Decision UD-03):</strong> Reviewers cannot modify requested quantities. Rejecting marks the requisition as terminal <code>Rejected</code>. The requester must submit a new requisition with corrected quantities.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modal-reject-reason">Mandatory Rejection Explanation <span class="required">*</span></label>
+          <textarea id="modal-reject-reason" class="form-textarea" rows="4" placeholder="Detail the operational or budgetary reason for rejection..." required></textarea>
+          <div class="form-helper-text">This explanation will be permanently recorded in the audit history and displayed to the creator.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-danger-contained" onclick="IPMS.submitRequisitionRejection()">Confirm Rejection (Terminal)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-REQ-CANCEL: Cancel Requisition Dialog (Decision U-01, FR-024) -->
+  <div id="modal-req-cancel" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Cancel Requisition</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-REQ-CANCEL</span>
+          <strong>Cancellation (FR-024, Decision U-01):</strong> Creator may cancel their own <code>Pending</code> requisition. Transitions to terminal <code>Cancelled</code> state.
+        </div>
+        <p>Are you sure you want to cancel your pending purchase requisition?</p>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          This action is permanent. The requisition will be marked as Cancelled and cannot be reopened.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Keep Requisition</button>
+        <button class="btn btn-danger-contained" onclick="IPMS.confirmReqCancel()">Cancel Requisition</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-EXCESS-AUTHORIZE: Excess Delivery Authorization Modal (Decisions U-05.2, UD-01) -->
+  <div id="modal-excess-authorize" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Review Excess Shipment</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-EXCESS-AUTHORIZE</span>
+          <strong>Excess Authorization Sequence (Decisions U-05.2, UD-01):</strong> Sequential Manager and Finance approval. If rejected, surplus units are rejected but originally approved units remain eligible for receipt at dock (Decision UD-01).
+        </div>
+
+        <div style="background-color:var(--bg-subtle); padding:12px; border-radius:4px; margin-bottom:16px;">
+          <div>Requisition: <strong id="modal-excess-req-code">--</strong></div>
+          <div style="margin-top:4px;">Physical Excess Units: <strong id="modal-excess-units" style="color:#c2410c;">+10 units</strong></div>
+          <div style="margin-top:4px;">Additional Financial Commitment: <strong id="modal-excess-cost" style="color:var(--wire-dark);">$450.00</strong></div>
+        </div>
+
+        <div id="modal-excess-reject-reason-group" class="form-group" style="display: none;">
+          <label class="form-label" for="modal-excess-reject-reason">Rejection Reason <span class="required">*</span></label>
+          <textarea id="modal-excess-reject-reason" class="form-textarea" rows="3" placeholder="Provide reason why excess units are refused at loading dock..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button id="modal-excess-btn-submit" class="btn btn-primary" onclick="IPMS.submitExcessAuthorization()">Authorize Excess</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-RECEIPT-CONFIRM: Goods Receipt Confirmation (Decision U-05.1) -->
+  <div id="modal-receipt-confirm" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Confirm Physical Goods Receipt</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-RECEIPT-CONFIRM</span>
+          <strong>Single-Event Receipt (Decision U-05.1):</strong> Exactly one receipt event per requisition. In partial deliveries, remaining units are not backordered in MVP. Stock increments atomically.
+        </div>
+        <p>Confirm committing verified quantities to active warehouse inventory?</p>
+        <div class="alert-banner alert-warning" style="margin-top: 12px;">
+          <strong>Notice:</strong> Once confirmed, requisition moves to terminal <code>Received</code> status and physical stock counts increase immediately.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Back</button>
+        <button class="btn btn-success" onclick="IPMS.confirmGoodsReceiptFinal()">Commit Active Inventory</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-USER-ROLE: Change Role Dialog (Admin Only) -->
+  <div id="modal-user-role" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Change Staff Role</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-USER-ROLE</span>
+          <strong>Role Assignment (FR-023):</strong> Admin modifies staff permissions. Changes take effect on next token refresh.
+        </div>
+        <p style="margin-bottom: 12px;">Target Staff: <strong id="modal-role-user-name"></strong></p>
+        <div class="form-group">
+          <label class="form-label" for="modal-role-select">Select New System Role</label>
+          <select id="modal-role-select" class="form-select">
+            <option value="Inventory Clerk">Inventory Clerk</option>
+            <option value="Manager">Manager</option>
+            <option value="Finance Officer">Finance Officer</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="IPMS.submitUserRoleChange()">Update Role</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-USER-DEACTIVATE: User Deactivation Dialog (Admin Only) -->
+  <div id="modal-user-deactivate" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Deactivate Staff Account</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-USER-DEACTIVATE</span>
+          <strong>Account Deactivation (FR-023):</strong> Immediately invalidates all active sessions and refresh tokens. Guarded against self-deactivation and last Admin deactivation.
+        </div>
+        <p>Are you sure you want to deactivate the account for <strong id="modal-deactivate-user-name"></strong>?</p>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          The staff member will be immediately barred from logging in or calling authenticated APIs.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Cancel</button>
+        <button class="btn btn-danger-contained" onclick="IPMS.confirmUserDeactivation()">Deactivate Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-USER-RESET-PWD: Admin-Assisted Password Reset Modal (Decision UD-02) -->
+  <div id="modal-user-reset-pwd" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Admin-Assisted Password Reset</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-USER-RESET-PWD</span>
+          <strong>Emergency Recovery (Decisions U-13, UD-02):</strong> Admin verifies staff identity via company internal procedures, then generates a single-use 24-hour temporary password. User must establish a permanent password at next login. Temporary credentials are never logged (NFR-009).
+        </div>
+
+        <div id="modal-reset-step1">
+          <p style="margin-bottom: 12px;">Initiate emergency temporary credential generation for staff member: <strong id="modal-reset-user-name"></strong>.</p>
+          <div class="form-group" style="background-color: var(--bg-subtle); padding: 12px; border-radius: 4px;">
+            <label style="font-size: 13px; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="modal-reset-verify-checkbox">
+              <strong>I confirm that I have verified this staff member's identity through internal company procedures (Decision UD-02).</strong>
+            </label>
+          </div>
+          <button class="btn btn-primary" style="width: 100%;" onclick="IPMS.generateTemporaryPassword()">Generate 24-Hour Temporary Password</button>
+        </div>
+
+        <div id="modal-reset-step2" style="display: none;">
+          <div class="alert-banner alert-success">
+            <strong>Temporary Password Generated (Valid for 24 Hours):</strong>
+          </div>
+          <div class="form-group">
+            <input type="text" id="modal-reset-temp-password-box" class="form-input" readonly style="font-family: monospace; font-size: 16px; font-weight: 700; text-align: center; letter-spacing: 1px;">
+          </div>
+          <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+            <button class="btn btn-secondary" style="flex: 1;" onclick="IPMS.copyTempPassword()">📋 Copy Credential</button>
+          </div>
+          <div class="form-helper-text" style="color: #991b1b;">
+            ⚠️ Transmit this temporary password out-of-band to the user. For security compliance (NFR-009), this password will not be shown again and is never written to logs or audit records.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOD-AUDIT-DETAIL: JSON Audit Inspector (FR-014) -->
+  <div id="modal-audit-detail" class="modal-overlay">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-header">
+        <h3>Audit Event Mutation Delta (JSON)</h3>
+        <button class="drawer-close-btn" onclick="IPMS.closeAllModals()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="wireframe-annotation">
+          <span class="annotation-badge">MOD-AUDIT-DETAIL</span>
+          <strong>JSON State Inspector (FR-014):</strong> Complete structured delta capturing before/after values, event type, and actor metadata. Credentials excluded per NFR-009.
+        </div>
+        <pre id="modal-audit-json-box" class="json-viewer"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="IPMS.closeAllModals()">Close Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- JavaScript Application Entry Point -->
+  <script src="app.js"></script>
+</body>
+</html>
