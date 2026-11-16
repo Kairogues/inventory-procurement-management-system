@@ -23,9 +23,10 @@ docs/
 
 | Document | Purpose | Status |
 | :--- | :--- | :--- |
-| [**SRS.md**](./specs/SRS.md) | Software Requirements Specification (IEEE 29148 standard compliant). Defines all functional and non-functional requirements, RBAC matrix, and API contracts. | **Official Baseline v1.3** |
-| [**DataModel.md**](./specs/DataModel.md) | PostgreSQL schema definitions, table relationships, foreign key constraints, and core business rules. | **Active v1.3** |
-| [**RequirementsRegister.md**](./specs/RequirementsRegister.md) | Functional requirements matrix mapping business goals to entities, endpoints, and validation criteria. | **Active** |
+| [**SRS.md**](./specs/SRS.md) | Software Requirements Specification (IEEE 29148 standard compliant). Defines all functional and non-functional requirements, RBAC matrix, and RESTful API contracts. | **Official Baseline v1.5** |
+| [**DataModel.md**](./specs/DataModel.md) | PostgreSQL schema definitions, table relationships, foreign key constraints, and core business rules. | **Active v1.5** |
+| [**RequirementsRegister.md**](./specs/RequirementsRegister.md) | Functional requirements matrix mapping business goals to entities, RESTful endpoints, and validation criteria. | **Active v1.5** |
+| [**SAD.md**](./specs/SAD.md) | Screen Architecture Document (MUI v5 / React 18). Defines the screen inventory, layout hierarchies, role-based workflows, and UI state machines. | **Active v1.0** |
 
 ---
 
@@ -44,7 +45,7 @@ docs/
 
 | Document | Purpose |
 | :--- | :--- |
-| [**DecisionLog.md**](./decisions/DecisionLog.md) | Log of key architecture decisions (ADRs) including SSE adoption over polling, per-SKU thresholds, and 2-step approval flow. |
+| [**DecisionLog.md**](./decisions/DecisionLog.md) | Log of key architecture decisions (ADRs) including SSE adoption, per-SKU thresholds, U-01–U-13 UX decisions, and post-UX resolved decisions UD-01–UD-04. |
 
 ---
 
@@ -53,6 +54,8 @@ docs/
 
 | Document | Purpose |
 | :--- | :--- |
+| [**IPMS_Documentation_Consolidation_Report.md**](./archive/IPMS_Documentation_Consolidation_Report.md) | Final consolidation report documenting resolution of UD-01–UD-04, superseding of U-04, partial receipt MVP scope, NFR-009 secret masking, and unconditional readiness for SAD creation. |
+| [**IPMS_Documentation_Audit_and_Correction_Report.md**](./archive/IPMS_Documentation_Audit_and_Correction_Report.md) | Comprehensive audit and correction report verifying UI/UX consolidation, formalizing excess-delivery workflows, and noting open PO decisions. |
 | [**SRS_Draft_Review.md**](./archive/SRS_Draft_Review.md) | Independent audit review logs and recommendations that shaped the final SRS baseline. |
 | [**SRS_Draft.md**](./archive/SRS_Draft.md) | Pre-baseline working draft (v1.1) incorporating initial review revisions. |
 | [**SRS_OldDraft.md**](./archive/SRS_OldDraft.md) | Initial preliminary draft before IEEE 29148 alignment and formal review. |
